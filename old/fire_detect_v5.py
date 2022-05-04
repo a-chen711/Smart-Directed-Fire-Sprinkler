@@ -16,11 +16,11 @@ def make_480p():
     cap.set(3, 640)
     cap.set(4, 480)
 
-xml_path = r"C:\Users\Alex Chen\Google Drive (yoyohc10@g.ucla.edu)\Fourth Year 2021-2022\Winter Quarter\ECE183DA\algorithms\Fire Detection Algorithm\cascade_24_300_18.xml"
+xml_path = r"C:\Users\Alex Chen\Google Drive (yoyohc10@g.ucla.edu)\Fourth Year 2021-2022\Winter Quarter\ECE183DA\algorithms\Fire Detection Algorithm\cascades\cascade_24_300_18.xml"
 fire_cascade = cv2.CascadeClassifier(xml_path) #xml is the parameters of our classifier
 
 video_file = r"C:\Users\Alex Chen\Google Drive (yoyohc10@g.ucla.edu)\Fourth Year 2021-2022\Winter Quarter\ECE183DA\algorithms\Fire Detection Algorithm\Small Fire Video_Trim.mp4"
-cap = cv2.VideoCapture(1) #start video capturing
+cap = cv2.VideoCapture(video_file) #start video capturing
 while cap.isOpened():
     # make_480p()
     ret, img = cap.read() #capture a frame
@@ -50,7 +50,7 @@ while cap.isOpened():
             print( 'Fire area is ' + str(w*h) + ' pixels squared') 
             print( 'Center of fire is at pixel coordinates ' + str([int((x+(x+w))/2), int((y+(y+h))/2)])) #take middle of rectangle width and the bottom of the box as coordinates
         # print(img[int((x+(x+w))/2), int((y+(y+h))/2)])
-        time.sleep(0.2) #wait
+        time.sleep(0.1) #wait
         
 
     cv2.imshow('img', img)
