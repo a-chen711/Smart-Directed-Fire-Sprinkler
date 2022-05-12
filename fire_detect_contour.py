@@ -1,8 +1,7 @@
 #########################
 #ECE 183DA Team Melpomene 
 #########################
-#5th iteration of fire detection model that now combines the colormasking and haar classifier
-#edited the lower and upper bounds for the colormask as well
+#7th iteration of fire detection model that uses purely contours and a strict color range for fires
 
 import numpy as np
 import cv2
