@@ -40,9 +40,9 @@ def sharpen_image(image):
 
 # initialize the camera and grab a reference to the raw camera capture
 camera = PiCamera()
-camera.resolution = (640, 480)
+camera.resolution = (480, 480) #(640, 480)
 camera.framerate = 30
-rawCapture = PiRGBArray(camera, size=(640, 480))
+rawCapture = PiRGBArray(camera, size=(480, 480))
 # allow the camera to warmup
 time.sleep(0.1)
 
@@ -81,7 +81,7 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         coords = [x, y, w, h]
         motor_control_v2.turn_motor(servo1, servo2, coords, state)
         # cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
-        cv2.imwrite("results/result" + str(caps) +".jpg", img)
+        # cv2.imwrite("results/result" + str(caps) +".jpg", img)
         caps += 1
     elif state == 1: #if the state was 1 but there is no longer a fire, then we know we just extinguished a fire and reset
         state = 2
