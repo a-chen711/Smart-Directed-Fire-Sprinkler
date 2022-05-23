@@ -2,7 +2,7 @@ from gpiozero import AngularServo
 import RPi.GPIO as GPIO
 from gpiozero.pins.pigpio import PiGPIOFactory
 import math
-from time import sleep
+from time import sleep, time
 
 #CAMERA
 height_constant = 10 #depends on the resolution CHANGE
@@ -15,7 +15,6 @@ hor_center = hor_res/2 #center pixel horizontally CHANGE THIS
 #MOTORS
 motor_1 = 23 #pin 16, gpio 23, controls horizontal movement
 motor_2 = 24 #pin 18, gpio 24, controls vertical movement (nozzle head)
-myCorrection=0.45
 maxPW=2.5/1000
 minPW=0.5/1000
 noz_mid = 35
@@ -31,15 +30,16 @@ led_2 = 27 #pin 13, gpio 27
 led_3 = 22 #pin 15, gpio 22
 
 #IR Sensor
-ir_pin = 25 #pin 22, GPIO 25
+ir_pin = 4 #pin 7, gpio 4
 
-#get duty cycle from angle
-def get_pwm(angle):
-    return (angle/18.0) + 2.5
+#Solenoid 
+sol_pin = 25 #pin 22, GPIO 25
 
 def gpio_setup():
     print("Setting up GPIO...")
     GPIO.setmode(GPIO.BCM) #GPIO.BCM
+    
+    #Servo setup
     factory = PiGPIOFactory() 
     # servo1 = Servo(motor_1,min_pulse_width=minPW,max_pulse_width=maxPW, pin_factory = factory)
     # servo2 = Servo(motor_2,min_pulse_width=minPW,max_pulse_width=maxPW, pin_factory = factory)
@@ -48,12 +48,20 @@ def gpio_setup():
     servo1.angle = gim_mid #approximately middle
     servo2.angle = gim_mid #approximately middle
     sleep(1)
+
+    #LED setup
     GPIO.setup(led_1, GPIO.OUT)
     GPIO.setup(led_2, GPIO.OUT)
     GPIO.setup(led_3, GPIO.OUT)
     GPIO.output(led_1, GPIO.LOW)
     GPIO.output(led_2, GPIO.LOW)
     GPIO.output(led_3, GPIO.LOW)
+
+    #solenoid setup
+    GPIO.setup(sol_pin, GPIO.OUT)
+
+    #IR setup
+    GPIO.setup(ir_pin,GPIO.IN)
     return servo1, servo2
 
 def startup(): #blink lights three times to indicate the system startup
@@ -72,38 +80,44 @@ def startup(): #blink lights three times to indicate the system startup
 #turn motors according to the coordinates fed from the fire detection algorithm
 def turn_motor(servo1, servo2, coordinates, state): #coordinates will give the x, y, w, h in pixel values
     # servo1, servo2 = gpio_setup()
-
     #depends on the resolution
+    trig_count = 0
     if state == 1: #extinguishing
         print("EXTINGUISH")
         GPIO.output(led_1, GPIO.HIGH)
         GPIO.output(led_2, GPIO.HIGH)
         GPIO.output(led_3, GPIO.LOW)
 
-        # azimuth = math.atan((coordinates[0] - hor_center)/height_constant) #angle along the horizontal axis
-        # elevation = math.atan((coordinates[1] - vert_center)/height_constant) #angle along the vertical axis
-        # hor_percent = azimuth/(math.pi/2.0)
-        # vert_percent = elevation/(math.pi/2.0)
         x, y, w, h = coordinates[0], coordinates[1], coordinates[2], coordinates[3]
         azimuth = ((x - hor_center)/hor_center)*45 #angle along the horizontal axis
         elevation = -((y - vert_center)/vert_center)*45 #angle along the vertical axis (negative because pixel values grow downwards)
-        # print("azi: " + str(azimuth) + "; elev: " + str(elevation))
-        #servo values range from -1 to 1
         servo1.angle = azimuth
         servo2.angle = elevation
-        sleep(0.5)
-        #the STOP below is questionable since we need to update the position continuously until the fire is no longer there
-        # servo1.stop()
-        # servo2.stop()
+        sleep(1)
+        verify = time()
+        while time() - verify <= 2: #verify for 2 seconds before resetting (if ir_pin is not high)
+            print("Verifying...")
+            while GPIO.input(ir_pin):
+                trig_count += 1
+                if trig_count == 1:
+                    start = time()
+                elif time() - start >= 3: #if IR is high for 3 seconds, we activate the solenoid
+                    print("Activating Solenoid...")
+                    GPIO.output(sol_pin, GPIO.HIGH) #ACTIVATE SOLENOID VALVE
+        turn_motor(servo1, servo2, None, 2) #RESET (regardless of activation or not)
     elif state == 2: #reset
-        #MAYBE JUST PASS THE MIDDLE OF THE SCREEN COORDINATES TO RESET
-        GPIO.output(led_1, GPIO.HIGH)
+        print("RESET")
+        GPIO.output(led_1, GPIO.HIGH) #Change LEDs
         GPIO.output(led_2, GPIO.HIGH)
         GPIO.output(led_3, GPIO.HIGH)
-        print("RESET")
+
+        GPIO.output(sol_pin, GPIO.LOW) #Stop Solenoid for 2 seconds
+        sleep(2)
+        
         servo1.angle = gim_mid #approximately middle
         servo2.angle = gim_mid #approximately middle
-        sleep(0.5)
+        sleep(1)
+        turn_motor(servo1, servo2, None, 0) #DATA COLLECTION
     elif state == 0: #data collection 
         GPIO.output(led_1, GPIO.HIGH)
         GPIO.output(led_2, GPIO.LOW)
