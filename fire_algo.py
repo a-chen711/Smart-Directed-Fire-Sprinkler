@@ -6,12 +6,15 @@
 import numpy as np
 import cv2
 import time
-import motor_control_v2
+import motor_control_v2 as motor_control
 # import the necessary packages
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 
-
+#STATES
+DATACOLL = 0 
+EXT = 1
+RESET = 2
 
 #masking function
 def create_mask_for_plant(image):
@@ -47,18 +50,18 @@ rawCapture = PiRGBArray(camera, size=(480, 480))
 time.sleep(0.1)
 
 #initialize GPIO
-servo1, servo2 = motor_control_v2.gpio_setup()
-motor_control_v2.startup() #indicate the system is starting up
-state = 0
+servo1, servo2 = motor_control.gpio_setup()
+motor_control.startup() #indicate the system is starting up
 count = 0
 caps = 0
-motor_control_v2.turn_motor(servo1, servo2, None, state) #DATA COLLECTION
+activated = False
+motor_control.turn_motor(servo1, servo2, None, DATACOLL, activated) #DATA COLLECTION
 # capture frames from the camera
 try:
     for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
         print("Count = " + str(count) + "; Captures = " + str(caps))
-        if count >= 10:
-            break
+        # if count >= 10:
+        #     break
         img = frame.array
         rawCapture.truncate(0)
         image_mask = create_mask_for_plant(img)
@@ -81,14 +84,15 @@ try:
             cv2.drawContours(img, [cnt], 0, (255, 255, 0), 3)
             x,y,w,h = cv2.boundingRect(cnt)
             coords = [x, y, w, h]
-            motor_control_v2.turn_motor(servo1, servo2, coords, state)
+            activated = motor_control.position_handler(servo1, servo2, coords, activated)
             # cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
             # cv2.imwrite("results/result" + str(caps) +".jpg", img)
+            # print("wrote image")
             caps += 1
         count += 1
-    motor_control_v2.cleanup()
+    motor_control.cleanup()
     cv2.destroyAllWindows()
 
 except KeyboardInterrupt:
-    motor_control_v2.cleanup()
+    motor_control.cleanup()
     cv2.destroyAllWindows()

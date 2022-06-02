@@ -54,7 +54,7 @@ def gpio_setup():
     servo1 = AngularServo(motor_1,min_pulse_width=minPW,max_pulse_width=maxPW, pin_factory = factory)
     servo2 = AngularServo(motor_2,min_pulse_width=minPW,max_pulse_width=maxPW, pin_factory = factory)
     servo1.angle = gim_mid #approximately middle
-    servo2.angle = gim_mid #approximately middle
+    servo2.angle = noz_mid #approximately middle
     sleep(1)
 
     #LED setup
@@ -69,7 +69,7 @@ def gpio_setup():
     GPIO.setup(sol_pin, GPIO.OUT)
     GPIO.output(sol_pin, GPIO.LOW)
     #IR setup
-    GPIO.setup(ir_pin,GPIO.IN) #ir_pin will be LOW if a fire is detected
+    GPIO.setup(ir_pin,GPIO.IN)
     return servo1, servo2
 
 def startup(): #blink lights three times to indicate the system startup
@@ -88,7 +88,7 @@ def startup(): #blink lights three times to indicate the system startup
 def get_angle(point, center, type):
     if type == 'v':
         return ((point - center)/center)*45
-    offset = -35
+    offset = -30
     return ((point - center)/center)*45 + offset
 
 def zigzag(x, y, w, h):
@@ -143,13 +143,15 @@ def turn_motor(servo1, servo2, coordinates, state, updating): #coordinates will 
         elevation = -get_angle(box_center_y, hor_center, 'v') #angle along the horizontal axis
         servo1.angle = elevation
         servo2.angle = azimuth
+        print("Servo1 angle = " + str(elevation))
+        print("Servo2 angle = " + str(azimuth))
         sleep(1)
-        
+        ir_status = True
         if updating == False: #if it hasn't been triggered yet
             verify = time()
-            while time() - verify <= 2: #verify for 2 seconds before resetting (if ir_pin is high)
+            while time() - verify <= 2: #verify for 2 seconds before resetting (if ir_pin is not high)
                 print("Verifying...")
-                while GPIO.input(ir_pin) == 0 and w*h >= 200: #if ir_pin low and area of box is larger than 90
+                while ir_status and w*h >= 200: #if ir_pin high and area of box is larger than 90
                     trig_count += 1
                     if trig_count == 1:
                         start = time()
@@ -158,14 +160,15 @@ def turn_motor(servo1, servo2, coordinates, state, updating): #coordinates will 
                         GPIO.output(sol_pin, GPIO.HIGH) #ACTIVATE SOLENOID VALVE
                         sleep(2) #spray at the middle for 2 seconds
                         sweep(servo1, servo2, x, y, w, h)  #sweep a set amount of times (end at the middle)
-                        activated = not GPIO.input(ir_pin) #check IR after, if it's low, then it still needs to activate
+                        activated = ir_status #check IR after, if it's high, then it still needs to activate
                         return activated
                 print("IR pin is low or area is " + str(w*h))
         else: # if it has been triggered previously and we're only updating the position, we don't need the checks
-            if GPIO.input(ir_pin) == 0 and w*h >= 90: #if ir_pin low and area of box is larger than 90 pixels squared
+            ir_status = False
+            if ir_status and w*h >= 200: #if ir_pin high and area of box is larger than 90 pixels squared
                 print("Updating Position of Nozzle...")
                 sweep(servo1, servo2, x, y, w, h)  #sweep a set amount of times (end at the middle)
-                activated = not GPIO.input(ir_pin)
+                activated = ir_status
                 return activated
             # turn_motor(servo1, servo2, None, 2) #RESET (regardless of activation or not)
     elif state == RESET: #reset
