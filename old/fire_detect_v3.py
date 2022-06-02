@@ -21,7 +21,7 @@ xml_path = r"C:\Users\Alex Chen\Google Drive (yoyohc10@g.ucla.edu)\Fourth Year 2
 fire_cascade = cv2.CascadeClassifier(xml_path) #xml is the parameters of our classifier
 
 video_file = r"C:\Users\Alex Chen\Google Drive (yoyohc10@g.ucla.edu)\Fourth Year 2021-2022\Winter Quarter\ECE183DA\algorithms\Fire Detection Algorithm\tree_fire_Trim.mp4"
-cap = cv2.VideoCapture(1) #start video capturing
+cap = cv2.VideoCapture(video_file) #start video capturing
 count = 0
 while cap.isOpened():
     # make_480p()
