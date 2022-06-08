@@ -4,6 +4,8 @@
 #Fire algorithm that interacts with the controls algorithm
 
 import numpy as np
+# print(np.__path__)
+# print(np.__version__)
 import cv2
 import time
 import motor_control_v2 as motor_control
@@ -59,7 +61,7 @@ motor_control.turn_motor(servo1, servo2, None, DATACOLL, activated) #DATA COLLEC
 # capture frames from the camera
 try:
     for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-        print("Count = " + str(count) + "; Captures = " + str(caps))
+        # print("Count = " + str(count) + "; Captures = " + str(caps))
         # if count >= 10:
         #     break
         img = frame.array
