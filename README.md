@@ -3,7 +3,7 @@
 This repository contains the software portion of my Undergraduate Capstone Project for ECE 183DA-B under Professor Ankur Mehta and Professor Jacob Rosen.
 
 ## Problem Statement and Goal
-A single conventional fire sprinkler pumps out 15 gallons of water per minute in an indiscriminate spray pattern, resulting in potentially catastrophic water damage to the contents of a room even after the fire has been extinguished.**This project's goal was to create a smart fire sprinkler to minimize water damage using computer vision and targeted extinguishing.** Please see our project elevator pitch below:
+A single conventional fire sprinkler pumps out 15 gallons of water per minute indiscriminately, resulting in potentially catastrophic water damage to the contents of a room even after the fire has been extinguished.**This project's goal was to create a smart fire sprinkler to minimize water damage using computer vision and targeted extinguishing.** Please see our project elevator pitch below:
 
 <p align="middle">
   <a href="https://www.youtube.com/watch?v=y3B0_WWEmtY&list=PLKiuu4WpUq1-CE1xshvQDQ768bJ5ZX2bB&index=5" target="_blank">
