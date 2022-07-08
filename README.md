@@ -9,7 +9,28 @@ This repository contains the software for my Undergraduate Capstone Project. **T
 </p>
 
 ## How it Works
+### State Diagram
+<p align="middle">
+  <img src="https://user-images.githubusercontent.com/59714253/177891359-8ffc2a0d-06e4-444a-a436-1dde99527a0c.png" alt="State Diagram" width="414" height="240"/>
+</p> 
 
+### Data Flowchart
+<p align="middle">
+  <img src="https://user-images.githubusercontent.com/59714253/177889858-f419c091-82bc-4851-9f92-dd09c8a0d7fc.png" alt="Data Flowchart" width="900" height="380"/>
+</p>
+
+### Logic Explanation
+The system begins in the _Data Collection_ state. Here the camera passes visual data to the Fire Detection Algorithm where an HSV colormask is applied to the image. It is then thresholded to the pixels with values between (255, 105, 0) and (255, 220, 30). Subsequently, segmentation is performed to isolate the pixels within these boundaries from the image. Then a 3x3 dilation kernel is iterated over the image for 14 iterations in order to reduce short gaps between the contours detected. After this is completed, a bounding box is drawn around the detected contour. 
+
+<p align="middle">
+  <img src="https://user-images.githubusercontent.com/59714253/177890471-868bb227-80ec-4701-8077-95c9c9d81bd2.png" alt="Bounding Box"/>
+</p>
+
+If a contour is extracted, indicating a potential fire detection, the bounding box pixel coordinates are sent to the Control Algorithm, where a coordinate to angle conversion is performed. As the images are taken in a resolution of 480x480 pixels, the distance from the coordinates to the center of the image are normalized between the angles -45 and 45, with an angle of 0 representing the center of the frame.
+
+This is performed on the horizontal and vertical axes. The normalized angles are then passed to a function from the _gpiozero_ module that converts the angles into a PWM signal for the servos controlling the 2-DOF gimbal mechanism. Once the targeting is complete and the nozzle is pointing at the supposed fire, the IR sensor attached to the nozzle is read continuously for 3 seconds to verify that the targeted location has the visual and IR signature of a fire. If 3 seconds of IR radiation are detected, the system verifies that there is a fire that is currently being targeted by the nozzle and the system enters the _**Extinguish**_ state. Anything other than a continuous stream of IR radiation is deemed not a fire, and the system enters the Reset state, in which the nozzle is reset back to a position normal to the ceiling. 
+
+If in the _**Extinguish**_ state, the system activates the solenoid valve to begin a pressurized stream of water from the building infrastructure. The nozzle then moves in a sweeping “Z” pattern within the detected bounding box to best apply water to the fire. After 3 sweeps of the bounding box, the system points at the center of the bounding box and checks for an IR reading. If the IR radiation is no longer detected, the system deems the fire extinguished. It then moves into the _**Reset**_ state. If the IR radiation continues to be high, the system continues the sweeping motion until the fire is extinguished. 
 
 ## Files 
 - _fire_algo.py_ is the final fire detection algorithm, used to detect and create a bounding box around a fire in frame.
@@ -27,8 +48,24 @@ This repository contains the software for my Undergraduate Capstone Project. **T
 - 12V Solenoid Valve
 - 12V Power Supply
 - 12V to 5V Buck Converter
+- 3 LEDs
 - 3D Printed 2 DOF Gimbal Mechanism
 - 3D Printed Nozzle
 - Flexible PVC Tubing
 
 ## Demo :rocket:
+### Negative Detection
+
+https://user-images.githubusercontent.com/59714253/177892495-123c028a-285c-4eb7-b774-d8f4a2c317af.mp4
+
+### Positive Detection (with simulated IR source)
+
+https://user-images.githubusercontent.com/59714253/177892520-c7e0f37b-46f0-4ca0-88c8-d35fca06de6f.mp4
+
+Note the lit LED on the IR sensor (on the nozzle), indicating a constant stream of IR radiation from the lighter.
+
+### Negative Detection (with IR interference from Remote Controller)
+
+https://user-images.githubusercontent.com/59714253/177892569-114a93c2-2078-4daf-9dea-9b6d85c27205.mp4
+
+Note the flickering LED on the IR sensor  as it is receiving a pulse of IR radiation from the remote controller.
