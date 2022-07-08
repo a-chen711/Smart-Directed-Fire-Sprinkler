@@ -8,6 +8,8 @@ This repository contains the software for my Undergraduate Capstone Project. **T
   </a>
 </p>
 
+If you are interested in the comprehensive (~60 minute) presentation, it can be found [here](https://www.youtube.com/watch?app=desktop&v=1DF-TpntejU&list=PLKiuu4WpUq18h715fSSBkkSOx-3rHuwM5&index=4). The software portion pertaining to this repository begins at 42:00.
+
 ## How it Works
 ### State Diagram
 <p align="middle">
@@ -53,7 +55,7 @@ If in the _**Extinguish**_ state, the system activates the solenoid valve to beg
 - 3D Printed Nozzle
 - Flexible PVC Tubing
 
-## Demo :rocket:
+## Demos :rocket:
 ### Negative Detection
 
 https://user-images.githubusercontent.com/59714253/177892495-123c028a-285c-4eb7-b774-d8f4a2c317af.mp4
@@ -68,4 +70,11 @@ Note the lit LED on the IR sensor (on the nozzle), indicating a constant stream 
 
 https://user-images.githubusercontent.com/59714253/177892569-114a93c2-2078-4daf-9dea-9b6d85c27205.mp4
 
-Note the flickering LED on the IR sensor  as it is receiving a pulse of IR radiation from the remote controller.
+Note the flickering LED on the IR sensor as it is receiving a pulse of IR radiation from the remote controller.
+
+### Video from Demo Day!
+
+https://user-images.githubusercontent.com/59714253/177893559-98bff813-416a-4662-b5bf-f5625fd59094.mp4
+
+
+
